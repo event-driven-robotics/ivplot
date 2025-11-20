@@ -97,26 +97,12 @@ from ivplot_gallery import ivplot_gallery
 ivplot_gallery(transistors, r'path/to/outputs')
 ```
 
-## 🎯 Why Interactive 3D?
-
-Papers often show Ids-Vds and Ids-Vgs plots, although these are just slices through a fundamentally 3D landscape. A 3D visualisation can be more useful for understanding and comparing these spaces, but only if you are able to roll them around interactively, otherwise they are often unreadable. Such visualisations are already available within certain existing software, but by exporting these visualisations to a self-contained `.html` file, you can distribute the *full interactive 3D figure* to anyone.
-  
-With browser-based 3D views you can freely rotate and explore:
-
-- saturation transition
-- subthreshold curvature  
-- contact and mobility effects  
-- multi-dimensional relationships otherwise invisible in 2D plots  
-
----
-
 ## 📜 License
 
 MIT License.  
 Use freely in research or commercial settings.  
 If appropriate, please cite the repository.
 
----
 
 ## 🧠 Citation
 
