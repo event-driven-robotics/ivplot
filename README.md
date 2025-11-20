@@ -1,13 +1,16 @@
 # Transistor sweep visualisation - redistributable interactive 2D & 3D I-V Plots
 
-This repository provides Python utilities for importing and interactively visualising **transistor sweep data** (e.g. *Ids–Vgs–Vds* measurements) in **2D and 3D** using Plotly.
-
-Figures are exported as standalone **HTML files** — fully interactive and viewable in any modern web browser, with no dependencies or Python environment required on the viewer's machine.
+We often use Ids-Vds and Ids-Vgs plots to explore transistor characteristics, although these are just slices through a fundamentally 3D landscape: Ids–Vgs–Vds. A 3D visualisation can be more useful for understanding and comparing these spaces, but only if we  are able to roll them around interactively, otherwise they are often unreadable. Such visualisations are already available within certain existing software, but by exporting these visualisations to self-contained **HTML files**, we can distribute the *full interactive 3D figures* to anyone, to be viewed in any browser, with no dependencies or Python environment required on the viewer's machine.
 
 ---
 
 ## 
 ![Demo](demo.gif)
+
+## 
+
+![Screenshot](screenshot.png)
+
 
 ## Features
 
@@ -32,57 +35,41 @@ Figures are exported as standalone **HTML files** — fully interactive and view
 
 ---
 
-## 🧰 Installation
+## Usage
+
+requirements:
 
 ```bash
 pip install pandas numpy plotly
 ```
 
-Clone or download this repository:
-
-```bash
-git clone https://github.com/event-driven-robotics/ivplot.git
-cd ivplot
-```
-
----
-
-## 🧠 Quick Example
+Optionally, use https://github.com/event-driven-robotics/ofet_import to import
+example data:
 
 ```python
-from ivplot import plot
-import numpy as np
-
-# Example synthetic data
-vgs = np.linspace(0, 2, 20)
-vds = np.linspace(0, 10, 30)
-ids = 1e-6 * np.outer(np.exp(vgs), (vds / 10))
-
-# Create the 6-panel interactive figure
-fig = plot(vgs, vds, ids, label="Measured")
-
-# Overlay a model
-ids_model = ids * 0.9
-plot(vgs, vds, ids_model, fig=fig, label="Modelled")
+os.environ['PATH_TO_TRANSISTOR_SWEEPS'] = r"path/to/data"
+from iit_cnr_2025 import transistors
 ```
 
-This produces `transistor_plot.html` and opens it in your default browser.
+Whatever the data source, format it into a list of sweeps, where each sweep is a dict in this form:
 
----
+{
+    'data': df       # DataFrame with columns ['vgs', 'vds', 'ids']
+    'type': str,     # 'g' for Vg sweep 'd' for Vd sweep, or 'both' (default if 'type' not present) for mixed data.
+}
 
-## 📦 Output Layout
+This following code produces one html file per transistor in a folder your Desktop and opens each in your default browser.
 
-```text
-+---------------------+---------------------+---------------------+
-| Ids–Vgs (log)       | 3D log(Ids)         | Ids–Vds (log)       |
-| color = Vds         |                     | color = Vgs         |
-+---------------------+---------------------+---------------------+
-| Ids–Vgs (linear)    | 3D Ids              | Ids–Vds (linear)    |
-| color = Vds         |                     | color = Vgs         |
-+---------------------+---------------------+---------------------+
+
+```python
+from ivplot import ivplot
+
+for transistor_name, transistor in transistors.items():
+    label = '_'.join(('iit_cnr', transistor_name))
+    fig = ivplot(transistor['sweeps'], marker='o', label=label, markersize=6)
+
 ```
 
----
 
 ## 🎯 Why Interactive 3D?
 
