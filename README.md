@@ -53,10 +53,12 @@ from iit_cnr_2025 import transistors
 
 Whatever the data source, format it into a list of sweeps, where each sweep is a dict in this form:
 
+```
 {
     'data': df       # DataFrame with columns ['vgs', 'vds', 'ids']
     'type': str,     # 'g' for Vg sweep 'd' for Vd sweep, or 'both' (default if 'type' not present) for mixed data.
 }
+```
 
 This following code produces one html file per transistor in a folder your Desktop and opens each in your default browser.
 
