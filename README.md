@@ -4,10 +4,11 @@ We often use Ids-Vds and Ids-Vgs plots to explore transistor characteristics, al
 
 ---
 
-## 
+## Animation
+
 ![Demo](demo.gif)
 
-## 
+## Screenshot
 
 ![Screenshot](screenshot.png)
 
