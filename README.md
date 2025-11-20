@@ -73,6 +73,21 @@ for transistor_name, transistor in transistors.items():
 
 ```
 
+This code takes 2 sweep-sets and overlays them in the same graphs - they become different colours in the 3D plots, and use different markers in the 2D graphs.
+
+```python
+kwargs = {
+    'surf': False, 
+    'markersize': 6, 
+    'html_path': 'combined_plot.html',
+    'name': 'Two characteristics overlaid',
+    }
+fig = None
+for transistor_name, marker in zip(['TR-F1', 'TR-F4'], ['x', 'o']):
+    fig = plot(transistors[transistor_name]['sweeps'], marker=marker, fig=fig, label=transistor_name, **kwargs)
+
+```
+    
 
 ## 🎯 Why Interactive 3D?
 
