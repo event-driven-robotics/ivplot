@@ -87,7 +87,15 @@ for transistor_name, marker in zip(['TR-F1', 'TR-F4'], ['x', 'o']):
     fig = plot(transistors[transistor_name]['sweeps'], marker=marker, fig=fig, label=transistor_name, **kwargs)
 
 ```
+
+Generate a gallery of individual 6-plot panels, one for each transistor (in this case, to redistribute the gallery, share the entire folder).
     
+```python
+
+from ivplot_gallery import ivplot_gallery
+
+ivplot_gallery(transistors, r'path/to/outputs')
+```
 
 ## 🎯 Why Interactive 3D?
 
