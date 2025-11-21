@@ -4,6 +4,7 @@ import plotly.io as pio
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
+from pathlib import Path
 
 # Force browser renderer for Spyder / scripts
 pio.renderers.default = "browser"
@@ -447,6 +448,9 @@ def ivplot(sweeps, fig=None,
         """
     
     html = pio.to_html(fig, include_plotlyjs="cdn", full_html=True, post_script=post_js)
+    
+    Path(html_path).parent.mkdir(parents=True, exist_ok=True)
+    
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(html)
     if auto_open:
