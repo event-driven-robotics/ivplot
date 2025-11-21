@@ -61,16 +61,16 @@ Whatever the data source, format it into a list of sweeps, where each sweep is a
 }
 ```
 
-This following code produces one html file per transistor in a folder your Desktop and opens each in your default browser.
-
+This following code produces one html file per transistor in a folder of your choice and opens each in your default browser.
 
 ```python
 from ivplot import ivplot
 
 for transistor_name, transistor in transistors.items():
-    label = '_'.join(('iit_cnr', transistor_name))
-    fig = ivplot(transistor['sweeps'], marker='o', label=label, markersize=6)
-
+    fig = ivplot(
+        transistor['sweeps'], 
+        label=transistor_name,
+        html_path'=r'path/to/outputs/{transistor_name}.html')
 ```
 
 This code takes 2 sweep-sets and overlays them in the same graphs - they become different colours in the 3D plots, and use different markers in the 2D graphs.
