@@ -8,7 +8,7 @@ except ImportError:
     # Fallback: standalone script
     from ivplot import ivplot
 
-# For thumbnails (static image export)
+# For optional thumbnails (static image export via Plotly + Kaleido)
 try:
     import plotly.graph_objects as go
     _HAS_PLOTLY = True
@@ -16,7 +16,13 @@ except Exception:
     _HAS_PLOTLY = False
 
 
-def ivplot_gallery(transistors, output_dir, auto_open=True, **ivplot_kwargs):
+def ivplot_gallery(
+    transistors,
+    output_dir,
+    auto_open=True,
+    use_thumbnails=True,
+    **ivplot_kwargs,
+):
     """
     For each transistor, call ivplot() to generate an individual HTML file,
     then build a gallery HTML combining all plots into one scrollable page.
@@ -26,6 +32,21 @@ def ivplot_gallery(transistors, output_dir, auto_open=True, **ivplot_kwargs):
       - html_path: per-transistor HTML filename
       - name:      transistor name
       - auto_open: always False (only the gallery is auto-opened)
+
+    Parameters
+    ----------
+    transistors : dict
+        Mapping transistor_name -> dict with at least key 'sweeps'.
+        Any other keys are treated as metadata and shown in the gallery.
+    output_dir : str or Path
+        Directory where individual plot HTML and the gallery index.html are saved.
+    auto_open : bool
+        If True, open the gallery HTML in the default browser.
+    use_thumbnails : bool
+        If True (default) generate and show 3D-log thumbnails.
+        If False, skip thumbnail generation and omit the thumbnail section.
+    **ivplot_kwargs :
+        Additional keyword arguments forwarded to ivplot().
     """
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -35,7 +56,7 @@ def ivplot_gallery(transistors, output_dir, auto_open=True, **ivplot_kwargs):
     thumb_files = {}
 
     # ----------------------------------------------------------------------
-    # 1. Generate individual IV plot HTML files (and thumbnails if possible)
+    # 1. Generate individual IV plot HTML files (and thumbnails if enabled)
     # ----------------------------------------------------------------------
     for name, transistor in transistors.items():
         out_file = output_dir / f"{name}.html"
@@ -56,28 +77,59 @@ def ivplot_gallery(transistors, output_dir, auto_open=True, **ivplot_kwargs):
         meta_items = {k: v for k, v in transistor.items() if k != "sweeps"}
         meta_by_name[name] = meta_items
 
-        # Try to build a thumbnail (3D log scene only) using plotly's static export
-        if _HAS_PLOTLY and fig is not None:
-            # Select traces in the log 3D scene (usually 'scene')
-            log3d_traces = [
-                tr for tr in fig.data
-                if getattr(tr, "type", "").startswith("scatter3d")
-                and getattr(tr, "scene", "scene") == "scene"
-            ]
-            if log3d_traces:
-                thumb_fig = go.Figure(data=log3d_traces, layout=fig.layout)
-                thumb_fig.update_layout(
+        # Optional thumbnail: only if user wants it, Plotly is available and we got a fig
+        if use_thumbnails and _HAS_PLOTLY and fig is not None:
+            try:
+                # ivplot may return fig or (fig, something)
+                fig_obj = fig[0] if isinstance(fig, tuple) else fig
+
+                # Select scatter3d traces in the LOG 3D scene.
+                # By convention, the log 3D panel is "scene", and the lin one is "scene2".
+                log3d_traces = [
+                    tr for tr in getattr(fig_obj, "data", [])
+                    if getattr(tr, "type", "").startswith("scatter3d")
+                    and getattr(tr, "scene", "scene") == "scene"
+                ]
+                if not log3d_traces:
+                    # Nothing suitable; skip thumbnail for this transistor
+                    continue
+
+                # Build a minimal single-scene figure just for the thumbnail
+                thumb_fig = go.Figure(data=log3d_traces)
+
+                # Try to reuse the camera from the original log 3D scene
+                camera = None
+                if hasattr(fig_obj.layout, "scene") and hasattr(fig_obj.layout.scene, "camera"):
+                    camera = fig_obj.layout.scene.camera
+
+                thumb_layout_kwargs = dict(
                     showlegend=False,
                     margin=dict(l=0, r=0, t=0, b=0),
-                    width=500,
-                    height=350,
+                    width=400,
+                    height=300,
+                    scene=dict(
+                        xaxis_title="Vgs (V)",
+                        yaxis_title="Vds (V)",
+                        zaxis_title="Ids (A, log10)",
+                        bgcolor="rgba(0,0,0,0)",
+                    ),
                 )
+                if camera is not None:
+                    thumb_layout_kwargs["scene_camera"] = camera
+
+                thumb_fig.update_layout(**thumb_layout_kwargs)
+
+                # Export as PNG using Kaleido
                 thumb_path = output_dir / f"{name}_thumb.png"
                 thumb_fig.write_image(str(thumb_path))
                 thumb_files[name] = thumb_path.name
 
+            except Exception as e:
+                # Fail soft; gallery still works without thumbnail
+                print(f"Thumbnail generation failed for {name}: {e}")
+
     # ----------------------------------------------------------------------
-    # 2. Build gallery HTML with lazy-loading iframes, thumbnails, and UI
+    # 2. Build gallery HTML with lazy-loading iframes, optional thumbnails
     # ----------------------------------------------------------------------
     gallery_file = output_dir / "index.html"
     lines = []
@@ -220,7 +272,7 @@ body.dark .thumb-item img {
     height: calc(100vh - 80px);
 }
 
-/* buttons */
+/* buttons + toolbar */
 .toolbar {
     display: flex;
     justify-content: space-between;
@@ -261,7 +313,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (themeBtn) {
         themeBtn.addEventListener('click', function() {
             body.classList.toggle('dark');
-            localStorage.setItem('ivplot_theme', body.classList.contains('dark') ? 'dark' : 'light');
+            localStorage.setItem(
+                'ivplot_theme',
+                body.classList.contains('dark') ? 'dark' : 'light'
+            );
         });
     }
 });
@@ -272,14 +327,12 @@ function toggleFullscreen(btn) {
     if (!container) return;
 
     if (!document.fullscreenElement) {
-        // Enter fullscreen
         if (container.requestFullscreen) {
             container.requestFullscreen();
         }
         container.classList.add('fullscreen');
         btn.textContent = 'Exit fullscreen';
     } else {
-        // Exit fullscreen
         if (document.exitFullscreen) {
             document.exitFullscreen();
         }
@@ -374,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function() {
     lines.append("<button id='themeToggle'>Toggle dark / light theme</button>")
     lines.append("</div>")
 
-    # Navigation + thumbnails
+    # Navigation + (optional) thumbnails
     lines.append("<h2>Jump to transistor:</h2>")
     lines.append("<ul class='nav-list'>")
     for name in html_files:
@@ -382,7 +435,7 @@ document.addEventListener('DOMContentLoaded', function() {
         lines.append(f"<li><a href='#{safe}'>{safe}</a></li>")
     lines.append("</ul>")
 
-    if thumb_files:
+    if use_thumbnails and thumb_files:
         lines.append("<h3>Thumbnails (3D log view)</h3>")
         lines.append("<div class='thumb-grid'>")
         for name, thumb in thumb_files.items():

@@ -97,6 +97,49 @@ from ivplot_gallery import ivplot_gallery
 ivplot_gallery(transistors, r'path/to/outputs')
 ```
 
+## Documentation
+
+ivplot arguments and defaults are as follows:
+
+```python
+ivplot(
+    sweeps, fig=None,
+    linlog="both",        # "both" | "lin" | "log"
+    view="all",           # "all" or list of ["ivgs","3d","ivds"]
+    surf=False,           # True = 3D surface (triangulated), False = scatter3d
+    link_3d=True,         # match camera between log + lin 3D panels
+    cmap="viridis",       # colormap for 2D colour axes
+    alpha=None,           # point transparency (default auto-adaptive)
+    marker="circle",      # Plotly marker symbol (e.g. "circle","x","square")
+    markersize=6,         # size of scatter markers
+    color=None,           # fixed per-dataset colour (3D only)
+    label=None,           # legend label for dataset overlays
+    max_samples=inf,      # downsample to at most this many points
+    rng_seed=0,           # reproducible sampling when downsampling
+    html_path="transistor_plot.html",  # output HTML file
+    auto_open=True,       # open in browser after writing
+    name="Transistor Curves"           # title in plot + HTML
+)
+```
+
+* Passing fig=<existing> overlays a new dataset onto an existing plot.
+* 2D colour encodes the hidden axis (Vds on left column, Vgs on right).
+* 3D colours are constant per dataset unless color is overridden.
+* max_samples protects browser/WebGL performance for large sweeps.
+
+
+ivplot_gallery function params are as follows:
+
+```
+ivplot_gallery(
+    transistors,              # dict: name -> {"sweeps": ..., other metadata...}
+    output_dir,               # directory for all HTML output
+    auto_open=True,           # open gallery index.html in browser
+    use_thumbnails=True,      # generate 3D-log PNG thumbnails (skip if False)
+    **ivplot_kwargs           # all extra keyword arguments forwarded to ivplot()
+)
+```
+
 ## 📜 License
 
 MIT License.  
