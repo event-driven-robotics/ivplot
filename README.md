@@ -44,12 +44,11 @@ requirements:
 pip install pandas numpy plotly
 ```
 
-Optionally, use https://github.com/event-driven-robotics/ofet_import to import
-example data:
+Optionally, use https://github.com/event-driven-robotics/ofet_import to import example data:
 
 ```python
-os.environ['PATH_TO_TRANSISTOR_SWEEPS'] = r"path/to/data"
-from iit_cnr_2025 import transistors
+import iit_cnr_2025
+transistors = iit_cnr_2025.import_data(r"path/to/data")
 ```
 
 Whatever the data source, format it into a list of sweeps, where each sweep is a dict in this form:
@@ -76,16 +75,15 @@ for transistor_name, transistor in transistors.items():
 This code takes 2 sweep-sets and overlays them in the same graphs - they become different colours in the 3D plots, and use different markers in the 2D graphs.
 
 ```python
-kwargs = {
-    'surf': False, 
-    'markersize': 6, 
-    'html_path': 'combined_plot.html',
-    'name': 'Two characteristics overlaid',
-    }
 fig = None
 for transistor_name, marker in zip(['TR-F1', 'TR-F4'], ['x', 'o']):
-    fig = plot(transistors[transistor_name]['sweeps'], marker=marker, fig=fig, label=transistor_name, **kwargs)
-
+    fig = plot(
+        transistors[transistor_name]['sweeps'],
+        marker=marker, fig=fig, 
+        label=transistor_name, 
+        html_path='combined_plot.html',
+        name='Two characteristics overlaid',
+        )
 ```
 
 Generate a gallery of individual 6-plot panels, one for each transistor (in this case, to redistribute the gallery, share the entire folder).
