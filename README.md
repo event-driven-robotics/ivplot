@@ -138,14 +138,14 @@ ivplot_gallery(
 )
 ```
 
-## 📜 License
+## License
 
 MIT License.  
 Use freely in research or commercial settings.  
 If appropriate, please cite the repository.
 
 
-## 🧠 Citation
+## Citation
 
 If used in scientific work:
 
